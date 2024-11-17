@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import static com.example.consist.Commen.TOKEN;
 
 
 @Service
+@Slf4j
 public class SeckillService {
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
@@ -37,9 +39,9 @@ public class SeckillService {
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, null);
-}
+	}
 
-//	@Scheduled(cron = "0 48 13 * * ?")
+	//	@Scheduled(cron = "0 48 13 * * ?")
 	public void tes1t() {
 		System.out.println("11执行了");
 
@@ -91,11 +93,14 @@ public class SeckillService {
 
 			for (Product product : products) {
 				// 提交抢购任务到线程池
-				for (int i = 1; i <=10 ; i++) {
-					waitAndPurchase(product, subReduceMill, i*850);
+				for (int i = 1; i <= 10; i++) {
+					waitAndPurchase(product, subReduceMill, i * 850);
+				}
+				for (int i = 1; i <= 13; i++) {
+					waitAndPurchase(product, subReduceMill, -i * 1000);
 				}
 
-				}
+			}
 			// 关闭线程池
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -165,20 +170,21 @@ public class SeckillService {
 	private void waitAndPurchase(Product product, long subReduceMill, long preOrderMillis) {
 		//wait
 		long currentMillis = getCurrentTime(subReduceMill);
-		long waitTime = product.getStartTime() - currentMillis-preOrderMillis;
+		long waitTime = product.getStartTime() - currentMillis - preOrderMillis;
 
 		if (waitTime > 0) {
 			// 安排购买任务
 			scheduledExecutorService.schedule(() -> {
-//				purchaseProduct(product);
-				System.out.println(1);
-			}, 1000, TimeUnit.MILLISECONDS);
+				purchaseProduct(product);
+			}, waitTime, TimeUnit.MILLISECONDS);
 
-			System.out.println(product.showCanOrderAndNow() + " 在 " + waitTime + " 毫秒后欲将执行addOrder");
+			System.out.println(product.showCanOrderAndNow() + " pre-在 " + waitTime + " 毫秒后欲将执行addOrder");
 		} else {
-			// 如果时间已经过了，立即购买
-			purchaseProduct(product);
-			System.out.println(product.showCanOrderAndNow() + "  无需等待立即购买 商品Id: ");
+			scheduledExecutorService.schedule(() -> {
+				purchaseProduct(product);
+			}, waitTime, TimeUnit.MILLISECONDS);
+			System.out.println(product.showCanOrderAndNow() + " after-在 " + waitTime + " 毫秒后欲将执行addOrder");
+
 		}
 	}
 
@@ -254,8 +260,11 @@ public class SeckillService {
 	public void purchaseProduct(Product product) {
 		try {
 			System.out.println("really调用addOrder--" + product.showCanOrderAndNow());        // 这里可以添加具体的购买逻辑)
+			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
+			String can =  new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
 			String s = client.addOrder(TOKEN, product.getId() + "");
-			System.out.println("addorder结果》》》{}" + s);
+			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
+			log.info("下单结果>>>{} --下单调用时间>>{}--商品可下单时间>>>{} --当前时间>>{}",s,invokeAddOrderTime,can,currr);
 			if (s.contains("\"msg\":\"ok\"")) {
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
 			}
