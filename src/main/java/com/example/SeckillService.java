@@ -93,10 +93,19 @@ public class SeckillService {
 
 			for (Product product : products) {
 				// 提交抢购任务到线程池
-				for (int i = 1; i <= 10; i++) {
-					waitAndPurchase(product, subReduceMill, i * 850);
+				//提前20毫秒
+				waitAndPurchase(product, subReduceMill, 20 );
+
+				//提前500ms内 多次尝试
+				for (int i = 1; i <= 9; i++) {
+					waitAndPurchase(product, subReduceMill, i * 60 );
 				}
-				for (int i = 1; i <= 13; i++) {
+				//提前1s ------6s
+				for (int i = 1; i <= 6; i++) {
+					waitAndPurchase(product, subReduceMill, i * 1000 );
+				}
+				//捡漏1s-13s
+				for (int i = 0; i <= 13; i++) {
 					waitAndPurchase(product, subReduceMill, -i * 1000);
 				}
 
