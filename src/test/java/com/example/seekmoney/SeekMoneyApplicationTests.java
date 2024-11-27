@@ -909,13 +909,7 @@ class SeekMoneyApplicationTests {
 		return null;
 	}
 
-	@Test
-	void test() {
-//		service.sortAndSeek(TEST_S, mockCurrentMillis());
-		service.tes1t();
-		System.out.printf("list>>>");
 
-	}
 
 	private Long mockCurrentMillis() {
 		return 1731564010000L-3000L;

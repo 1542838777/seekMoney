@@ -35,39 +35,22 @@ public class SeckillService {
 	}
 
 	//每天13：50秒执行
-	@Scheduled(cron = "0 58 13 * * ?")
+	@Scheduled(cron = "35 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
-		sortAndSeek(null, null);
+		sortAndSeek(null, 3,null);
+		sortAndSeek(null, 2,null);
+//		sortAndSeek(null, 1,null);
 	}
 
-	//	@Scheduled(cron = "0 48 13 * * ?")
-	public void tes1t() {
-		System.out.println("11执行了");
 
-		for (int i = 0; i < 17; i++) {
 
-			// 提交抢购任务到线程池
-			//wait
-			// 安排购买任务
-			scheduledExecutorService.schedule(() -> {
-//				purchaseProduct(product);
-				System.out.println(1);
-			}, i, TimeUnit.MILLISECONDS);
 
-		}
-		sortAndSeek(null, null);
-	}
 
-	public void exceedvMock() {
-		System.out.println("V2执行了");
-		sortAndSeek(null, null);
-	}
-
-	public void sortAndSeek(String mockParam, Long mockLongCurrentTime) {
+	public void sortAndSeek(String mockParam,int rush_config_id, Long mockLongCurrentTime) {
 		String jsonResponse = null;
 		if (mockParam == null) {
-			jsonResponse = client.seckillList(TOKEN, 1);
+			jsonResponse = client.seckillList(TOKEN, rush_config_id,1);
 		} else {
 			jsonResponse = mockParam;
 		}
@@ -79,7 +62,7 @@ public class SeckillService {
 			JsonNode rootNode = objectMapper.readTree(jsonResponse);
 			JsonNode dataNode = rootNode.path("data").path("data");
 
-			List<Product> products = getAllProducts(jsonResponse);
+			List<Product> products = getAllProducts(jsonResponse,rush_config_id);
 			new ArrayList<>();
 
 
@@ -94,18 +77,13 @@ public class SeckillService {
 			for (Product product : products) {
 				// 提交抢购任务到线程池
 				//提前20毫秒
-				waitAndPurchase(product, subReduceMill, 20 );
 
-				//提前500ms内 多次尝试
-				for (int i = 1; i <= 9; i++) {
-					waitAndPurchase(product, subReduceMill, i * 60 );
-				}
 				//提前1s ------6s
-				for (int i = 1; i <= 6; i++) {
+				for (int i = 1; i <= 5; i++) {
 					waitAndPurchase(product, subReduceMill, i * 1000 );
 				}
 				//捡漏1s-13s
-				for (int i = 0; i <= 13; i++) {
+				for (int i = 0; i <= 3; i++) {
 					waitAndPurchase(product, subReduceMill, -i * 1000);
 				}
 
@@ -198,7 +176,7 @@ public class SeckillService {
 	}
 
 	@SneakyThrows
-	private List<Product> getAllProducts(String jsonResponse) {
+	private List<Product> getAllProducts(String jsonResponse,int rush_config_id) {
 		List<Product> products = new ArrayList<>();
 
 		// 使用 Jackson 解析 JSON
@@ -207,25 +185,25 @@ public class SeckillService {
 		JsonNode dataNode = rootNode.path("data").path("data");
 		Integer last_page = rootNode.path("data").path("last_page").asInt();
 		// 遍历商品数据
-		dataNodeToConvertProducts(dataNode, products);
+		dataNodeToConvertProducts(dataNode, products,rush_config_id);
 		if (last_page == 1) {
 			return products;
 		}
 		for (int i = 2; i <= last_page; i++) {
-			jsonResponse = client.seckillList(TOKEN, i);
+			jsonResponse = client.seckillList(TOKEN, rush_config_id,i);
 			rootNode = objectMapper.readTree(jsonResponse);
 			dataNode = rootNode.path("data").path("data");
-			dataNodeToConvertProducts(dataNode, products);
+			dataNodeToConvertProducts(dataNode, products,rush_config_id);
 		}
 		return products;
 	}
 
-	private void dataNodeToConvertProducts(JsonNode dataNode, List<Product> products) {
+	private void dataNodeToConvertProducts(JsonNode dataNode, List<Product> products,int rush_config_id) {
 		for (JsonNode productNode : dataNode) {
 			long start_time = productNode.path("start_time").asLong();
 			int id = productNode.path("id").asInt();
 			// 添加到产品列表
-			products.add(new Product(id, start_time));
+			products.add(new Product(id, start_time,rush_config_id));
 		}
 	}
 
@@ -240,10 +218,12 @@ public class SeckillService {
 	static class Product {
 		private int id;
 		private long startTime;
+		private int rushConfigId;
 
-		public Product(int id, long starttime) {
+		public Product(int id, long starttime,int rushConfigId) {
 			this.id = id;
 			this.startTime = starttime * 1000;
+			this.rushConfigId = rushConfigId;
 		}
 
 		public int getId() {
@@ -256,11 +236,11 @@ public class SeckillService {
 		}
 
 		public String showCanOrderAndNow() {
-			return showId() + "--当前时间:" + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()) + "--商品可下单时间:" + new SimpleDateFormat("HH:mm:ss.SSS").format(startTime);
+			return showId() + "--当前:" + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()) + "--商品可下单:" + new SimpleDateFormat("HH:mm:ss.SSS").format(startTime);
 		}
 
 		public String showId() {
-			return "--商品Id:" + id;
+			return "--Id:" + id +"--configId--"+ rushConfigId;
 		}
 
 	}
