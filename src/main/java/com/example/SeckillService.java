@@ -39,7 +39,7 @@ public class SeckillService {
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, 3,null);
-		sortAndSeek(null, 2,null);
+//		sortAndSeek(null, 2,null);
 //		sortAndSeek(null, 1,null);
 	}
 
@@ -79,11 +79,11 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = 1; i <= 5; i++) {
+				for (int i = 1; i <= 6; i++) {
 					waitAndPurchase(product, subReduceMill, i * 1000 );
 				}
 				//捡漏1s-13s
-				for (int i = 0; i <= 3; i++) {
+				for (int i = 0; i <= 2; i++) {
 					waitAndPurchase(product, subReduceMill, -i * 1000);
 				}
 
