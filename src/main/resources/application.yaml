@@ -27,6 +27,9 @@ forest:
   log-request: true # 打开/关闭Forest请求日志（默认为 true）
   log-response-status: true # 打开/关闭Forest响应状态日志（默认为 true）
   log-response-content: true # 打开/关闭Forest响应内容日志（默认为 false）
+  retry-interval: 100000
+  max-retry-count: 0     # 最大请求重试次数，默认为 0 次
+  max-retry-interval: 1000000 # 为最大重试时间间隔, 单位为毫秒，默认为 0 毫秒
 
   mybatis-plus:
     configuration:
