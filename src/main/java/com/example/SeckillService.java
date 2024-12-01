@@ -79,13 +79,17 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = 1; i <= 7; i++) {
+				for (int i = 8; i <= 12; i++) {
 					waitAndPurchase(product, subReduceMill, i * 1000 );
 				}
-				//捡漏1s-13s
-				for (int i = 3; i <= 6; i++) {
-					waitAndPurchase(product, subReduceMill, -i * 1000);
+				for (int i = 15; i <= 16; i++) {
+					waitAndPurchase(product, subReduceMill, -i * 1000 );
 				}
+
+//				//捡漏1s-13s
+//				for (int i = 3; i <= 6; i++) {
+//					waitAndPurchase(product, subReduceMill, -i * 1000);
+//				}
 
 			}
 			// 关闭线程池
