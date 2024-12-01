@@ -79,7 +79,7 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = 1; i <= 8; i++) {
+				for (int i = 1; i <= 7; i++) {
 					waitAndPurchase(product, subReduceMill, i * 1000 );
 				}
 				//捡漏1s-13s
@@ -248,18 +248,21 @@ public class SeckillService {
 	// 模拟商品抢购
 	public void purchaseProduct(Product product) {
 		try {
-			System.out.println("really调用addOrder--" + product.showCanOrderAndNow());        // 这里可以添加具体的购买逻辑)
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can =  new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
 			String s = client.addOrder(TOKEN, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-			log.info("下单结果>>>{} --下单调用时间>>{}--商品可下单时间>>>{} --当前时间>>{}",s,invokeAddOrderTime,can,currr);
+			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}",s.substring(0,23),invokeAddOrderTime,can,currr,product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
 			}
 		} catch (Exception e) {
 			System.out.println("异常" + e);
 		}
+	}
+
+	public static void main(String[] args) {
+		System.out.println("{\"code\":105,\"msg\":\"ok\"。\",\"data\":{\"today_seckill_time1\":0,\"user_seckill_times\":0,\"mobile\":\"13896947245\"}".substring(0, 23));
 	}
 
 }
