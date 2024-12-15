@@ -10,10 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -79,13 +76,10 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = 0; i <= 13; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000 );
+				for (int i = -6; i <= 10; i+=2) {
+					waitAndPurchase(product, subReduceMill, i * 1000-(new Random().nextInt(500)+150));
 				}
-				//捡漏1s-13s
-				for (int i = 1; i <= 2; i++) {
-					waitAndPurchase(product, subReduceMill, -i * 1000);
-				}
+
 
 			}
 			// 关闭线程池
