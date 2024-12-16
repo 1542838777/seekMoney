@@ -72,8 +72,8 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = -7; i <= 10; i+=2) {
-					waitAndPurchase(product, subReduceMill, i * 1000-(new Random().nextInt(500)+150));
+				for (int i = -7; i <= 16; i++) {
+					waitAndPurchase(product, subReduceMill, i * 1000-(new Random().nextInt(440)+150));
 				}
 
 
