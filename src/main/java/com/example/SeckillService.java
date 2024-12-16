@@ -2,6 +2,7 @@ package com.example;
 
 import com.alibaba.fastjson.JSON;
 import com.example.consist.Commen;
+import com.example.service.user.LoginService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -10,12 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 
 
 @Service
@@ -31,22 +32,20 @@ public class SeckillService {
 	}
 
 	//每天13：50秒执行
+	@Scheduled(cron = "35 07 15 * * ?")
 	@Scheduled(cron = "35 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
-		sortAndSeek(null, 3,null);
+		sortAndSeek(null, 3, null);
 //		sortAndSeek(null, 2,null);
 //		sortAndSeek(null, 1,null);
 	}
 
 
-
-
-
-	public void sortAndSeek(String mockParam,int rush_config_id, Long mockLongCurrentTime) {
+	public void sortAndSeek(String mockParam, int rush_config_id, Long mockLongCurrentTime) {
 		String jsonResponse = null;
 		if (mockParam == null) {
-			jsonResponse = client.seckillList(Commen.getToken(), rush_config_id,1);
+			jsonResponse = client.seckillList(getToken(), rush_config_id, 1);
 		} else {
 			jsonResponse = mockParam;
 		}
@@ -55,7 +54,7 @@ public class SeckillService {
 			long subReduceMill = mockLongCurrentTime == null ? 0 : curSeconds - mockLongCurrentTime;
 			// 使用 Jackson 解析 JSON
 
-			List<Product> products = getAllProducts(jsonResponse,rush_config_id);
+			List<Product> products = getAllProducts(jsonResponse, rush_config_id);
 			new ArrayList<>();
 
 
@@ -73,7 +72,7 @@ public class SeckillService {
 
 				//提前1s ------6s
 				for (int i = -7; i <= 16; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000-(new Random().nextInt(440)+150));
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(440) + 150));
 				}
 
 
@@ -166,7 +165,7 @@ public class SeckillService {
 	}
 
 	@SneakyThrows
-	private List<Product> getAllProducts(String jsonResponse,int rush_config_id) {
+	private List<Product> getAllProducts(String jsonResponse, int rush_config_id) {
 		List<Product> products = new ArrayList<>();
 
 		// 使用 Jackson 解析 JSON
@@ -175,25 +174,35 @@ public class SeckillService {
 		JsonNode dataNode = rootNode.path("data").path("data");
 		Integer last_page = rootNode.path("data").path("last_page").asInt();
 		// 遍历商品数据
-		dataNodeToConvertProducts(dataNode, products,rush_config_id);
+		dataNodeToConvertProducts(dataNode, products, rush_config_id);
 		if (last_page == 1) {
 			return products;
 		}
 		for (int i = 2; i <= last_page; i++) {
-			jsonResponse = client.seckillList(Commen.getToken(), rush_config_id,i);
+			jsonResponse = client.seckillList(getToken(), rush_config_id, i);
 			rootNode = objectMapper.readTree(jsonResponse);
 			dataNode = rootNode.path("data").path("data");
-			dataNodeToConvertProducts(dataNode, products,rush_config_id);
+			dataNodeToConvertProducts(dataNode, products, rush_config_id);
 		}
 		return products;
 	}
 
-	private void dataNodeToConvertProducts(JsonNode dataNode, List<Product> products,int rush_config_id) {
+	@Resource
+	private LoginService loginService;
+
+	private String getToken() {
+		if (Commen.getToken() == null) {
+			return loginService.loginReturnToken();
+		}
+		return Commen.getToken();
+	}
+
+	private void dataNodeToConvertProducts(JsonNode dataNode, List<Product> products, int rush_config_id) {
 		for (JsonNode productNode : dataNode) {
 			long start_time = productNode.path("start_time").asLong();
 			int id = productNode.path("id").asInt();
 			// 添加到产品列表
-			products.add(new Product(id, start_time,rush_config_id));
+			products.add(new Product(id, start_time, rush_config_id));
 		}
 	}
 
@@ -210,7 +219,7 @@ public class SeckillService {
 		private long startTime;
 		private int rushConfigId;
 
-		public Product(int id, long starttime,int rushConfigId) {
+		public Product(int id, long starttime, int rushConfigId) {
 			this.id = id;
 			this.startTime = starttime * 1000;
 			this.rushConfigId = rushConfigId;
@@ -230,7 +239,7 @@ public class SeckillService {
 		}
 
 		public String showId() {
-			return "--Id:" + id +"--configId--"+ rushConfigId;
+			return "--Id:" + id + "--configId--" + rushConfigId;
 		}
 
 	}
@@ -239,10 +248,10 @@ public class SeckillService {
 	public void purchaseProduct(Product product) {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-			String can =  new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			String s = client.addOrder(Commen.getToken(), product.getId() + "");
+			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
+			String s = client.addOrder(getToken(), product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}",s.substring(0,23),invokeAddOrderTime,can,currr,product.showId());
+			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 23), invokeAddOrderTime, can, currr, product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
 			}

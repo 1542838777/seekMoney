@@ -7,7 +7,7 @@ import javax.annotation.Resource;
 
 @Service
 public class Commen {
-	public static String token = "5f2d9a3b-0205-4240-81d0-8ce9acc8a8f2";
+	public static String token ;
 
 	@Resource
 	LoginService loginService;
