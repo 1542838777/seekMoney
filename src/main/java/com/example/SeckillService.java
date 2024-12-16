@@ -1,6 +1,7 @@
 package com.example;
 
 import com.alibaba.fastjson.JSON;
+import com.example.consist.Commen;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -15,7 +16,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.example.consist.Commen.TOKEN;
 
 
 @Service
@@ -23,7 +23,6 @@ import static com.example.consist.Commen.TOKEN;
 public class SeckillService {
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
-	private static final int THREAD_POOL_SIZE = 512;
 	@Autowired
 	MyApiClient client;
 
@@ -47,7 +46,7 @@ public class SeckillService {
 	public void sortAndSeek(String mockParam,int rush_config_id, Long mockLongCurrentTime) {
 		String jsonResponse = null;
 		if (mockParam == null) {
-			jsonResponse = client.seckillList(TOKEN, rush_config_id,1);
+			jsonResponse = client.seckillList(Commen.getToken(), rush_config_id,1);
 		} else {
 			jsonResponse = mockParam;
 		}
@@ -55,9 +54,6 @@ public class SeckillService {
 			long curSeconds = System.currentTimeMillis(); // 获取当前时间（秒）
 			long subReduceMill = mockLongCurrentTime == null ? 0 : curSeconds - mockLongCurrentTime;
 			// 使用 Jackson 解析 JSON
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode rootNode = objectMapper.readTree(jsonResponse);
-			JsonNode dataNode = rootNode.path("data").path("data");
 
 			List<Product> products = getAllProducts(jsonResponse,rush_config_id);
 			new ArrayList<>();
@@ -76,7 +72,7 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = -6; i <= 10; i+=2) {
+				for (int i = -7; i <= 10; i+=2) {
 					waitAndPurchase(product, subReduceMill, i * 1000-(new Random().nextInt(500)+150));
 				}
 
@@ -184,7 +180,7 @@ public class SeckillService {
 			return products;
 		}
 		for (int i = 2; i <= last_page; i++) {
-			jsonResponse = client.seckillList(TOKEN, rush_config_id,i);
+			jsonResponse = client.seckillList(Commen.getToken(), rush_config_id,i);
 			rootNode = objectMapper.readTree(jsonResponse);
 			dataNode = rootNode.path("data").path("data");
 			dataNodeToConvertProducts(dataNode, products,rush_config_id);
@@ -244,7 +240,7 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can =  new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			String s = client.addOrder(TOKEN, product.getId() + "");
+			String s = client.addOrder(Commen.getToken(), product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}",s.substring(0,23),invokeAddOrderTime,can,currr,product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {

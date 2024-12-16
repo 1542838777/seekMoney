@@ -12,4 +12,7 @@ public interface MyApiClient {
 	@Post("https://tp.tofur.com/addons/shopro/seckill/addOrder")
 	@LogEnabled(logRequest = true, logResponseContent = false)
 	String addOrder(@Header("Token") String token , @JSONBody("id") String idString);
+	@Post("https://tp.tofur.com/addons/shopro/user/accountLogin")
+	@LogEnabled(logRequest = true, logResponseContent = false)
+	String accountLogin(@JSONBody("account") String account , @JSONBody("device_id") String device_id , @JSONBody("password") String password);
 }

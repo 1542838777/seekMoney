@@ -1,11 +1,14 @@
 package com.example.seekmoney;
 
 import com.example.SeckillService;
+import com.example.consist.Commen;
+import com.example.service.user.LoginService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.annotation.Resource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -903,6 +906,14 @@ class SeekMoneyApplicationTests {
 		service.exceed();
 //		service.sortAndSeekv2(null, null);
 		System.out.printf("list>>>");
+	}
+	@Resource
+	LoginService loginService;
+	@Test
+	void testToken() {
+		System.out.println(Commen.getToken());
+		loginService.loginReturnToken();
+		System.out.println(Commen.getToken());
 	}
 
 	private Object getSubTime() {
