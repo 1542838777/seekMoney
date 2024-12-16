@@ -20,7 +20,7 @@ public class LoginService {
 
 	//login
 	@SneakyThrows
-	@Scheduled(cron = "40 41 13 * * ?")
+	@Scheduled(cron = "10 59 13 * * ?")
 	public String loginReturnToken() {
 		String date = myApiClient.accountLogin("13896947245", "1730440189833104661" + ("" + new Random().nextInt(10)), "aa258258");
 		// 使用 Jackson 解析 JSON
