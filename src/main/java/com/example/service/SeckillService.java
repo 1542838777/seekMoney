@@ -23,17 +23,15 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class SeckillService {
+	private String token="f250f7bb-5dbf-42fd-b3af-301a85f907d3";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
 	@Autowired
 	MyApiClient client;
 
-	public void test() {
-		System.out.println("ttest");
-	}
 
 	//每天13：50秒执行
-	@Scheduled(cron = "35 07 15 * * ?")
+	@Scheduled(cron = "30 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, 3, null);
@@ -84,18 +82,20 @@ public class SeckillService {
 	}
 
 	private String getKillList(int rush_config_id, int i) {
-		return client.seckillList(testTokenReturnRightToken(), rush_config_id, 1);
+		return client.seckillList(token, rush_config_id, 1);
 	}
 
 	@Resource
 	private LoginService loginService;
 
-	private String testTokenReturnRightToken() {
-		String data = client.addOrder(getToken(), 1305 + "");
-		if (data.contains("请登录后再操作")) {
-			return loginService.loginReturnToken();
-		}
-		return getToken();
+	@Scheduled(cron = "10 59 13 * * ?")
+	private void initToken() {
+		token = loginService.loginReturnToken();
+	}
+
+	@Scheduled(cron = "15 59 13 * * ?")
+	private void testVAlToken() {
+		log.info("定时查看token >>>{}", token);
 	}
 
 	private void waitAndPurchase(Product product, long subReduceMill, long preOrderMillis) {
@@ -202,7 +202,7 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			String s = client.addOrder(testTokenReturnRightToken(), product.getId() + "");
+			String s = client.addOrder(token, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 23), invokeAddOrderTime, can, currr, product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {
