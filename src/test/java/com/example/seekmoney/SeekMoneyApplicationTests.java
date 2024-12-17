@@ -1,6 +1,6 @@
 package com.example.seekmoney;
 
-import com.example.SeckillService;
+import com.example.service.SeckillService;
 import com.example.consist.Commen;
 import com.example.service.user.LoginService;
 import lombok.SneakyThrows;

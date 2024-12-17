@@ -1,6 +1,7 @@
-package com.example;
+package com.example.service;
 
 import com.alibaba.fastjson.JSON;
+import com.example.MyApiClient;
 import com.example.consist.Commen;
 import com.example.service.user.LoginService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,7 +34,6 @@ public class SeckillService {
 
 	//每天13：50秒执行
 	@Scheduled(cron = "35 07 15 * * ?")
-	@Scheduled(cron = "35 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, 3, null);
@@ -45,7 +45,7 @@ public class SeckillService {
 	public void sortAndSeek(String mockParam, int rush_config_id, Long mockLongCurrentTime) {
 		String jsonResponse = null;
 		if (mockParam == null) {
-			jsonResponse = client.seckillList(getToken(), rush_config_id, 1);
+			jsonResponse = getKillList(rush_config_id, 1);
 		} else {
 			jsonResponse = mockParam;
 		}
@@ -82,66 +82,21 @@ public class SeckillService {
 			e.printStackTrace();
 		}
 	}
-//	public void sortAndSeekv2(String mockParam, Long mockLongCurrentTime) {
-//		String jsonResponse = null;
-//		if (mockParam == null) {
-//			jsonResponse = client.seckillListv2(TOKEN, 1);
-//		} else {
-//			jsonResponse = mockParam;
-//		}
-//		try {
-//			long curSeconds = System.currentTimeMillis(); // 获取当前时间（秒）
-//			long subReduceMill = mockLongCurrentTime == null ? 0 : curSeconds - mockLongCurrentTime;
-//			// 使用 Jackson 解析 JSON
-//			ObjectMapper objectMapper = new ObjectMapper();
-//			JsonNode rootNode = objectMapper.readTree(jsonResponse);
-//			JsonNode dataNode = rootNode.path("data").path("data");
-//
-//			List<Product> products = getAllProducts(jsonResponse);
-//			new ArrayList<>();
-//
-//
-//			// 按  StartTime 排序
-//			products.sort(Comparator.comparingLong(Product::getStartTime));
-//			System.out.println("Sorted products:" + JSON.toJSONString(products));
-//
-//			// 按 StartTime 排序
-//			products.sort(Comparator.comparingLong(Product::getStartTime));
-//
-//			ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-//
-//			for (Product product : products) {
-//				// 提交抢购任务到线程池
-//				executorService.submit(() -> {
-//					waitAndPurchase(product, subReduceMill, 120);
-//				});
-//				executorService.submit(() -> {
-//					waitAndPurchase(product, subReduceMill, 40);
-//				});
-//				executorService.submit(() -> {
-//					waitAndPurchase(product, subReduceMill, 0);
-//				});
-//				executorService.submit(() -> {
-//					waitAndPurchase(product, subReduceMill, 20);
-//				});
-//
-//			}
-//			// 关闭线程池
-//			executorService.shutdown();
-//			try {
-//				// 等待所有任务完成或超时
-//				if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-//					executorService.shutdownNow(); // 超时后强制关闭
-//				}
-//			} catch (InterruptedException e) {
-//				executorService.shutdownNow();
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
 
+	private String getKillList(int rush_config_id, int i) {
+		return client.seckillList(testTokenReturnRightToken(), rush_config_id, 1);
+	}
+
+	@Resource
+	private LoginService loginService;
+
+	private String testTokenReturnRightToken() {
+		String data = client.addOrder(getToken(), 1305 + "");
+		if (data.contains("请登录后再操作")) {
+			return loginService.loginReturnToken();
+		}
+		return getToken();
+	}
 
 	private void waitAndPurchase(Product product, long subReduceMill, long preOrderMillis) {
 		//wait
@@ -187,8 +142,6 @@ public class SeckillService {
 		return products;
 	}
 
-	@Resource
-	private LoginService loginService;
 
 	private String getToken() {
 		if (Commen.getToken() == null) {
@@ -249,7 +202,7 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			String s = client.addOrder(getToken(), product.getId() + "");
+			String s = client.addOrder(testTokenReturnRightToken(), product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 23), invokeAddOrderTime, can, currr, product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {

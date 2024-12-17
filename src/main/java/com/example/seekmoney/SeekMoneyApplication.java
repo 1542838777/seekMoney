@@ -1,6 +1,6 @@
 package com.example.seekmoney;
 
-import com.example.SeckillService;
+import com.example.service.SeckillService;
 import com.dtflys.forest.springboot.annotation.ForestScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
