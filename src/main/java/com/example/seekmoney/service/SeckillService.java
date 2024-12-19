@@ -1,16 +1,19 @@
-package com.example.service;
+package com.example.seekmoney.service;
 
 import com.alibaba.fastjson.JSON;
-import com.example.MyApiClient;
-import com.example.consist.Commen;
-import com.example.service.user.LoginService;
+import com.example.seekmoney.MyApiClient;
+import com.example.seekmoney.Product;
+import com.example.seekmoney.service.user.LoginService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -22,23 +25,45 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RequestMapping("/skill")
+@Controller
 public class SeckillService {
-	private String token="f250f7bb-5dbf-42fd-b3af-301a85f907d3";
+	private String token = "21313132-5562-4eb8-a53b-95bcd62a1b9a";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
 	@Autowired
 	MyApiClient client;
 
+	@GetMapping("/testGetList")
+	private String testGetList() {
+		String s = client.seckillList(token, 3, 1);
+		return s;
+	}
+
+	/*
+		@Scheduled(cron = "20 51 11 * * ?")
+		private void testVAlToken() {
+			log.info("定时查看token >>>{}", token);
+		}
+	*/
+//	@Scheduled(cron = "30 58 12 * * ?")
+	@GetMapping("/initToken")
+	private void initToken() {
+		String originToken = token;
+		token = loginService.loginReturnToken();
+		log.info("手动调用初始化token----- originToken {}, now Token {}", originToken, token);
+
+	}
+
 
 	//每天13：50秒执行
-	@Scheduled(cron = "30 59 13 * * ?")
+	@Scheduled(cron = "40 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, 3, null);
 //		sortAndSeek(null, 2,null);
 //		sortAndSeek(null, 1,null);
 	}
-
 
 	public void sortAndSeek(String mockParam, int rush_config_id, Long mockLongCurrentTime) {
 		String jsonResponse = null;
@@ -81,6 +106,7 @@ public class SeckillService {
 		}
 	}
 
+
 	private String getKillList(int rush_config_id, int i) {
 		return client.seckillList(token, rush_config_id, 1);
 	}
@@ -88,15 +114,6 @@ public class SeckillService {
 	@Resource
 	private LoginService loginService;
 
-	@Scheduled(cron = "10 59 13 * * ?")
-	private void initToken() {
-		token = loginService.loginReturnToken();
-	}
-
-	@Scheduled(cron = "15 59 13 * * ?")
-	private void testVAlToken() {
-		log.info("定时查看token >>>{}", token);
-	}
 
 	private void waitAndPurchase(Product product, long subReduceMill, long preOrderMillis) {
 		//wait
@@ -134,7 +151,7 @@ public class SeckillService {
 			return products;
 		}
 		for (int i = 2; i <= last_page; i++) {
-			jsonResponse = client.seckillList(getToken(), rush_config_id, i);
+			jsonResponse = client.seckillList(token, rush_config_id, i);
 			rootNode = objectMapper.readTree(jsonResponse);
 			dataNode = rootNode.path("data").path("data");
 			dataNodeToConvertProducts(dataNode, products, rush_config_id);
@@ -142,13 +159,6 @@ public class SeckillService {
 		return products;
 	}
 
-
-	private String getToken() {
-		if (Commen.getToken() == null) {
-			return loginService.loginReturnToken();
-		}
-		return Commen.getToken();
-	}
 
 	private void dataNodeToConvertProducts(JsonNode dataNode, List<Product> products, int rush_config_id) {
 		for (JsonNode productNode : dataNode) {
@@ -167,35 +177,6 @@ public class SeckillService {
 	}
 
 	// 商品类
-	static class Product {
-		private int id;
-		private long startTime;
-		private int rushConfigId;
-
-		public Product(int id, long starttime, int rushConfigId) {
-			this.id = id;
-			this.startTime = starttime * 1000;
-			this.rushConfigId = rushConfigId;
-		}
-
-		public int getId() {
-			return id;
-		}
-
-
-		public long getStartTime() {
-			return startTime;
-		}
-
-		public String showCanOrderAndNow() {
-			return showId() + "--当前:" + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date()) + "--商品可下单:" + new SimpleDateFormat("HH:mm:ss.SSS").format(startTime);
-		}
-
-		public String showId() {
-			return "--Id:" + id + "--configId--" + rushConfigId;
-		}
-
-	}
 
 	// 模拟商品抢购
 	public void purchaseProduct(Product product) {

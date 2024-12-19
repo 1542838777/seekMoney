@@ -1,4 +1,4 @@
-package com.example;
+package com.example.seekmoney;
 
 import com.dtflys.forest.annotation.*;
 

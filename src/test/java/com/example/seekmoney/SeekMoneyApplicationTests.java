@@ -1,8 +1,7 @@
 package com.example.seekmoney;
 
-import com.example.service.SeckillService;
-import com.example.consist.Commen;
-import com.example.service.user.LoginService;
+import com.example.seekmoney.service.SeckillService;
+import com.example.seekmoney.service.user.LoginService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -909,13 +908,6 @@ class SeekMoneyApplicationTests {
 	}
 	@Resource
 	LoginService loginService;
-	@Test
-	void testToken() {
-		System.out.println(Commen.getToken());
-		loginService.loginReturnToken();
-		System.out.println(Commen.getToken());
-	}
-
 	private Object getSubTime() {
 		return null;
 	}

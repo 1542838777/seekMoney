@@ -1,6 +1,6 @@
-package com.example.consist;
+package com.example.seekmoney.consist;
 
-import com.example.service.user.LoginService;
+import com.example.seekmoney.service.user.LoginService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
