@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/skill")
 @Controller
 public class SeckillService {
-	private String token = "4bf7ec66-7914-4125-9527-5fc4cdf9181b";
+	private String token = "c6c7e9f0-5540-4bb9-b843-ac2d0e430caa";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
 	@Autowired
@@ -46,7 +46,7 @@ public class SeckillService {
 			log.info("定时查看token >>>{}", token);
 		}
 	*/
-//	@Scheduled(cron = "30 58 12 * * ?")
+	@Scheduled(cron = "30 04 14 * * ?")
 	@GetMapping("/initToken")
 	private void initToken() {
 		String originToken = token;

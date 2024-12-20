@@ -25,6 +25,8 @@ public class LoginService {
 		JsonNode rootNode = objectMapper.readTree(date);
 		String token = String.valueOf(rootNode.path("data").path("token"));
 		log.info("parse Token>>> {}",token);
+		//去掉第一个字符，去掉最后面一个字符
+		token = token.substring(1, token.length() - 1);
 		return  token;
 	}
 }
