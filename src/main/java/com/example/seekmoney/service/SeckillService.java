@@ -28,14 +28,16 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/skill")
 @Controller
 public class SeckillService {
-	private String token = "c6c7e9f0-5540-4bb9-b843-ac2d0e430caa";
+	private String token = "4bf7ec66-7914-4125-9527-5fc4cdf9181b";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
 	@Autowired
 	MyApiClient client;
 
 	@GetMapping("/testGetList")
+	@Scheduled(cron = "35 04 14 * * ?")
 	private String testGetList() {
+		log.info("测试 自动的token start");
 		String s = client.seckillList(token, 3, 1);
 		return s;
 	}
