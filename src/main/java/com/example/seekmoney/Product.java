@@ -8,6 +8,9 @@ public class  Product {
 	private long startTime;
 	private int rushConfigId;
 
+
+	private Boolean finished=false;
+
 	public Product(int id, long starttime, int rushConfigId) {
 		this.id = id;
 		this.startTime = starttime * 1000;
@@ -29,6 +32,13 @@ public class  Product {
 
 	public String showId() {
 		return "--Id:" + id + "--configId--" + rushConfigId;
+	}
+	public Boolean getFinished() {
+		return finished;
+	}
+
+	public void setFinished(Boolean finished) {
+		this.finished = finished;
 	}
 
 }

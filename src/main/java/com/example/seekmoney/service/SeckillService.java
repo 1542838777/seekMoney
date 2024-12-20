@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/skill")
 @Controller
 public class SeckillService {
-	private String token = "21313132-5562-4eb8-a53b-95bcd62a1b9a";
+	private String token = "4bf7ec66-7914-4125-9527-5fc4cdf9181b";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
 	@Autowired
@@ -185,9 +185,16 @@ public class SeckillService {
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
 			String s = client.addOrder(token, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 23), invokeAddOrderTime, can, currr, product.showId());
+			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
+				if (product.getFinished()) {
+					System.out.println("已经finished但还是成功抢到商品--" + product.showId());
+				}
+			}
+			if (s.contains("\"msg\":\"商品已被秒杀。\"")) {
+				log.info(product.showId() + "商品已finished");
+				product.setFinished(true);
 			}
 		} catch (Exception e) {
 			System.out.println("异常" + e);
