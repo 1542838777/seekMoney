@@ -45,4 +45,4 @@ log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印日志到控制台
 log-level: info # 日志级别可以设置为：trace、debug、info、warn、error
 
 server:
-  port: 8082
+  port: 8080

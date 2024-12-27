@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/skill")
 @Controller
 public class SeckillService {
-	private String token = "3cfa1c00-2c2a-46c5-8f95-097ca777b63a";
+	private String token = "417b9717-7424-41bc-bdbd-fb0347869757";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 
 	@Autowired
@@ -106,7 +106,7 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = -7; i <= 16; i++) {
+				for (int i = -7; i <= 20; i++) {
 					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(440) + 150));
 				}
 
@@ -195,10 +195,10 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			if (product.getFinished()) {
+			/*if (product.getFinished()) {
 				log.info("已经售完,停止addOrder {}", product.showId());
 				return;
-			}
+			}*/
 			String s = client.addOrder(token, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId());
