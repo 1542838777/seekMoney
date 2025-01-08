@@ -106,8 +106,8 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = -7; i <= 20; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(440) + 150));
+				for (int i = -2; i <= 23; i++) {
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
 				}
 
 
@@ -117,6 +117,11 @@ public class SeckillService {
 			e.printStackTrace();
 		}
 	}
+
+
+
+
+
 
 
 	private String getKillList(int rush_config_id, int i) {
@@ -195,16 +200,17 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			/*if (product.getFinished()) {
-				log.info("已经售完,停止addOrder {}", product.showId());
+			if (product.getGrabbed()) {
+				log.info("已经抢到,停止再次addOrder {}", product.showId());
 				return;
-			}*/
+			}
 			String s = client.addOrder(token, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
 				if (product.getFinished()) {
+					product.setGrabbed(true);
 					System.out.println("已经finished但还是成功抢到商品--" + product.showId());
 				}
 			}

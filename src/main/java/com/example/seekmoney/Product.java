@@ -10,6 +10,18 @@ public class  Product {
 
 
 	private Boolean finished=false;
+	//grabbed
+
+
+	public Boolean getGrabbed() {
+		return grabbed;
+	}
+
+	public void setGrabbed(Boolean grabbed) {
+		this.grabbed = grabbed;
+	}
+
+	private Boolean grabbed = false;
 
 	public Product(int id, long starttime, int rushConfigId) {
 		this.id = id;
