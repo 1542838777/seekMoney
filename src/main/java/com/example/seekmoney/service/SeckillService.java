@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Controller
 public class SeckillService {
 	private String token = "417b9717-7424-41bc-bdbd-fb0347869757";
-	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
+	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(50);
 
 	@Autowired
 	MyApiClient client;
@@ -69,7 +69,7 @@ public class SeckillService {
 
 
 	//每天13：50秒执行
-	@Scheduled(cron = "30 59 13 * * ?")
+	@Scheduled(cron = "25 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, 3, null);
@@ -106,7 +106,10 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = -2; i <= 23; i++) {
+				for (int i = 0; i <= 35; i++) {
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
+				}
+				for (int i = -7; i <= -3; i++) {
 					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
 				}
 
@@ -209,8 +212,8 @@ public class SeckillService {
 			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId());
 			if (s.contains("\"msg\":\"ok\"")) {
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
+				product.setGrabbed(true);
 				if (product.getFinished()) {
-					product.setGrabbed(true);
 					System.out.println("已经finished但还是成功抢到商品--" + product.showId());
 				}
 			}
