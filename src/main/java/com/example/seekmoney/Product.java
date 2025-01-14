@@ -1,17 +1,40 @@
 package com.example.seekmoney;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-public class  Product {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product {
 	private int id;
 	private long startTime;
 	private int rushConfigId;
 
 
-	private Boolean finished=false;
+	private Boolean finished = false;
 	//grabbed
 	private Boolean grabbed = false;
+
+	String executePointDescrip = "";
+
+	public Long getWaitTime() {
+		return waitTime;
+	}
+
+	Long waitTime;
+
+	public void setExecutePointDescrip(String executePointDescrip) {
+		this.executePointDescrip = executePointDescrip;
+	}
+
+	public void setWaitTime(Long waitTime) {
+		this.waitTime = waitTime;
+	}
+
 	public Boolean getGrabbed() {
 		return grabbed;
 	}
@@ -40,8 +63,9 @@ public class  Product {
 	}
 
 	public String showId() {
-		return "--Id:" + id + "--configId--" + rushConfigId;
+		return "--Id:" + id + "--configId--" + rushConfigId + executePointDescrip;
 	}
+
 	public Boolean getFinished() {
 		return finished;
 	}
