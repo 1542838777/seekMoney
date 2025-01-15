@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -31,8 +32,11 @@ import java.util.stream.Collectors;
 public class SeckillService {
 	private String token = "417b9717-7424-41bc-bdbd-fb0347869757";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
-	public Integer grabedNum = 0;
+	public AtomicInteger grabbedNum = new AtomicInteger(0);
 
+	public void incrementGrabbedNum() {
+		grabbedNum.incrementAndGet();
+	}
 	@Autowired
 	MyApiClient client;
 
@@ -71,7 +75,7 @@ public class SeckillService {
 
 	@GetMapping("/exceed")
 	//每天13：50秒执行
-	@Scheduled(cron = "30 59 13 * * ?")
+	@Scheduled(cron = "25 59 13 * * ?")
 	public void exceed() {
 		System.out.println("执行了");
 		sortAndSeek(null, 3, null);
@@ -107,12 +111,11 @@ public class SeckillService {
 				//提前20毫秒
 
 				//提前1s ------6s
-				for (int i = -1; i <= 17; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000 - ((new Random().nextInt(380) + 50)));
+				for (int i = 0; i <= 25; i++) {
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
 				}
-
-				for (int i = -25; i <= -14; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(380)));
+				for (int i = -7; i <= -3; i++) {
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
 				}
 
 
@@ -154,7 +157,6 @@ public class SeckillService {
 
 		}
 		//执行时间描述
-		product.setExecutePointDescrip(waitTime > 0 ? "提前" : "延后" + Math.abs(waitTime) + "毫秒执行");
 		product.setWaitTime(waitTime);
 	}
 
@@ -205,15 +207,16 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			if (product.getGrabbed() || grabedNum >= 3) {
-				log.info("已经抢到,停止再次addOrder {} grabedNum {}", product.showId(), grabedNum);
+			if (product.getGrabbed() || grabbedNum.get() >= 3) {
+				log.info("已经抢到,停止再次addOrder {} grabedNum {}", product.showId(), grabbedNum.get());
 				return;
 			}
 			String s = client.addOrder(token, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-			log.info("下单结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId());
+			String  executeDesc =  getExecuteDesc(invokeAddOrderTime,can);
+			log.info("结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId(),executeDesc);
 			if (s.contains("\"msg\":\"ok\"")) {
-				grabedNum++;
+				incrementGrabbedNum();
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
 				product.setGrabbed(true);
 				if (product.getFinished()) {
@@ -229,37 +232,23 @@ public class SeckillService {
 		}
 	}
 
+	private String getExecuteDesc(String invokeAddOrderTime, String can) {
+		Date executeTime = new Date(invokeAddOrderTime);
+		Date canAddOrderTime = new Date(can);
+		String preFix = executeTime.before(canAddOrderTime)?"提前":"延后";
+		return preFix + Math.abs(executeTime.getTime() - canAddOrderTime.getTime()) + "毫秒执行";
+	}
+
 	public static void main(String[] args) {
-		//生成productList。  一个grabed参数为true。一个为false
-		ArrayList<Product> perS = new ArrayList();
-		Product p1 = new Product();
-		p1.setGrabbed(false);
-		p1.setWaitTime(-111L);
-		Product p2 = new Product();
-		p2.setGrabbed(true);
-		p2.setGrabbed(true);
-		p2.setWaitTime(134L);
-		Product p3 = new Product();
-		p3.setGrabbed(true);
-		p3.setWaitTime(123L);
-		Product p4 = new Product();
-		p4.setGrabbed(true);
-		p4.setWaitTime(12L);
-		perS.add(p1);
-		perS.add(p2);
-		perS.add(p3);
-		perS.add(p4);
-		log.info("抢到列表详情 >>{}", perS.stream().filter(Product::getGrabbed).sorted(Comparator.comparingLong(Product::getWaitTime).reversed()).collect(Collectors.toList()));
-
-
 		System.out.println("{\"code\":105,\"msg\":\"ok\"。\",\"data\":{\"today_seckill_time1\":0,\"user_seckill_times\":0,\"mobile\":\"13896947245\"}".substring(0, 23));
 	}
 
 	@GetMapping("/refreshGrabbedNum")
 	@Scheduled(cron = "00 09 14 * * ?")
 	public void refreshGrabbedNum() {
-		grabedNum = 0;
-		log.info("刷新抢购次数为 {}", grabedNum);
+		log.info("目前抢购次数为 {}", grabbedNum.get());
+		grabbedNum.set(0);
+		log.info("刷新抢购次数为 {}", grabbedNum.get());
 	}
 
 }

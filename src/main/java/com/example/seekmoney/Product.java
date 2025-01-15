@@ -19,7 +19,6 @@ public class Product {
 	//grabbed
 	private Boolean grabbed = false;
 
-	String executePointDescrip = "";
 
 	public Long getWaitTime() {
 		return waitTime;
@@ -27,9 +26,7 @@ public class Product {
 
 	Long waitTime;
 
-	public void setExecutePointDescrip(String executePointDescrip) {
-		this.executePointDescrip = executePointDescrip;
-	}
+
 
 	public void setWaitTime(Long waitTime) {
 		this.waitTime = waitTime;
@@ -63,7 +60,7 @@ public class Product {
 	}
 
 	public String showId() {
-		return "--Id:" + id + "--configId--" + rushConfigId + executePointDescrip;
+		return "--Id:" + id + "--configId--" + rushConfigId ;
 	}
 
 	public Boolean getFinished() {
