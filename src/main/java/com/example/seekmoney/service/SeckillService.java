@@ -33,10 +33,13 @@ public class SeckillService {
 	private String token = "417b9717-7424-41bc-bdbd-fb0347869757";
 	public ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(44);
 	public AtomicInteger grabbedNum = new AtomicInteger(0);
+	public AtomicInteger orderListGrabbedNum = new AtomicInteger(0);
+
 
 	public void incrementGrabbedNum() {
 		grabbedNum.incrementAndGet();
 	}
+
 	@Autowired
 	MyApiClient client;
 
@@ -112,10 +115,10 @@ public class SeckillService {
 
 				//提前1s ------6s
 				for (int i = 0; i <= 25; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400)));
 				}
 				for (int i = -7; i <= -3; i++) {
-					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400) ));
+					waitAndPurchase(product, subReduceMill, i * 1000 - (new Random().nextInt(400)));
 				}
 
 
@@ -207,14 +210,17 @@ public class SeckillService {
 		try {
 			String invokeAddOrderTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 			String can = new SimpleDateFormat("HH:mm:ss.SSS").format(product.getStartTime());
-			if (product.getGrabbed() || grabbedNum.get() >= 3) {
-				log.info("已经抢到,停止再次addOrder {} grabedNum {}", product.showId(), grabbedNum.get());
+			if (product.getGrabbed()) {
+				log.info("已经抢到,停止再次addOrder {} ", product.showId());
 				return;
+			}
+			if (!canContinueAddOrder()) {
+				log.info("已抢到目标商品数量，已停止addOrder 代码抢到_{} 订单列表num_{}", grabbedNum.get(), orderListGrabbedNum.get());
 			}
 			String s = client.addOrder(token, product.getId() + "");
 			String currr = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-			String  executeDesc =  getExecuteDesc(invokeAddOrderTime,can);
-			log.info("结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId(),executeDesc);
+			String executeDesc = getExecuteDesc(invokeAddOrderTime, can);
+			log.info("结果>>>{} --下单>>{}--可下单>>>{} --当前>>{}--{}--{}", s.substring(0, 26), invokeAddOrderTime, can, currr, product.showId(), executeDesc);
 			if (s.contains("\"msg\":\"ok\"")) {
 				incrementGrabbedNum();
 				System.out.println("成功抢到商品--" + product.showCanOrderAndNow());
@@ -235,7 +241,7 @@ public class SeckillService {
 	private String getExecuteDesc(String invokeAddOrderTime, String can) {
 		Date executeTime = new Date(invokeAddOrderTime);
 		Date canAddOrderTime = new Date(can);
-		String preFix = executeTime.before(canAddOrderTime)?"提前":"延后";
+		String preFix = executeTime.before(canAddOrderTime) ? "提前" : "延后";
 		return preFix + Math.abs(executeTime.getTime() - canAddOrderTime.getTime()) + "毫秒执行";
 	}
 
@@ -249,6 +255,30 @@ public class SeckillService {
 		log.info("目前抢购次数为 {}", grabbedNum.get());
 		grabbedNum.set(0);
 		log.info("刷新抢购次数为 {}", grabbedNum.get());
+	}
+
+	//判断 订单列表的已抢商品数 是否小于3
+	@GetMapping("/getOrderListGrabbedNum")
+	@SneakyThrows
+	public int getOrderListGrabbedNum() {
+		String jsonResponse = client.orderList(token);
+		// 使用 Jackson 解析 JSON
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode = objectMapper.readTree(jsonResponse);
+		int num = rootNode.path("data").path("total").asInt();
+		return num;
+	}
+
+	//每日14时0分5秒，9秒，15秒，20秒各执行一次
+	@Scheduled(cron = "7,12,17,23,28,35,42 0 14 * * ?") // 每天 14:00:05, 14:00:09, 14:00:15, 14:00:20
+	public void setOrderListGrabbedNum() {
+		log.info("invoked setOrderListGrabbedNum");
+		int orderListGrabbedNum1 = getOrderListGrabbedNum();
+		orderListGrabbedNum.set(orderListGrabbedNum1);
+	}
+
+	public boolean canContinueAddOrder() {
+		return grabbedNum.get() < 3 && orderListGrabbedNum.get() < 3;
 	}
 
 }
